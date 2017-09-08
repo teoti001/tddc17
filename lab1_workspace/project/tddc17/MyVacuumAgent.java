@@ -25,6 +25,19 @@ class Vector {
 	}
 	public int x;
 	public int y;
+	@Override
+	public int hashCode(){
+		return this.x * 37 + this.y;
+	}
+	
+	@Override
+	public boolean equals(Object other){
+	    if (other == null) return false;
+	    if (other == this) return true;
+	    if (!(other instanceof Vector))return false;
+	    Vector otherVector = (Vector)other; 
+		return this.x == otherVector.x && this.y == otherVector.y;
+	}
 }
 
 class MyAgentState
@@ -119,9 +132,8 @@ class MyAgentState
                     new Vector(pos.x, pos.y + 1)
                 };
 
-			    for (Vector newPos : newPositions) {	//Teo tror att det här är rätt, inte säker.
-			    	if (!visited.contains(newPos)) {	//BUG: contains kollar om SAMMA objekt finns i hashset:et, inte om ett object med samma värde finns,set:et har flera "kopior" av Vector:er med samma värde(därav oändlig loop). 
-			    										//contains(Object o): Returns true if this set contains the specified element.
+			    for (Vector newPos : newPositions) {
+			    	if (!visited.contains(newPos)) { 
 				        queue.push(newPos);
 				        if (!pathToNode.containsKey(newPos)) {
 				            pathToNode.put(newPos, pos);
