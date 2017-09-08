@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename method &apos;tddc17.MyAgentState.infront(...)&apos; to &apos;isInfront&apos;&#x0A;- Original project: &apos;project&apos;&#x0A;- Original element: &apos;tddc17.MyAgentState.infront(...)&apos;&#x0A;- Renamed element: &apos;tddc17.MyAgentState.isInfront(...)&apos;&#x0A;- Update references to refactored element" delegate="false" deprecate="false" description="Rename method &apos;infront&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.method" input="/&lt;tddc17{MyVacuumAgent.java[MyAgentState~infront~QVector;" name="isInfront" references="true" stamp="1504854442714" version="1.0"/>
+</session>
