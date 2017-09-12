@@ -6,6 +6,7 @@ import aima.core.util.datastructure.Queue;
 import aima.core.agent.Action;
 import aima.core.agent.AgentProgram;
 import aima.core.agent.Percept;
+import aima.core.agent.State;
 import aima.core.agent.impl.*;
 
 import java.util.ArrayDeque;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+
+import org.omg.CORBA.UNKNOWN;
 
 import sun.net.www.content.audio.x_aiff;
 
@@ -27,7 +30,7 @@ class Vector {
 	public int y;
 	@Override
 	public int hashCode(){
-		return this.x * 37 + this.y;
+		return this.x * 307 + this.y;
 	}
 	
 	@Override
@@ -103,7 +106,7 @@ class MyAgentState
 		return world[pos.x][pos.y];
 	}
 	
-	public ArrayList<Vector> closestUnexplored(){
+	public ArrayList<Vector> findTile(java.util.function.Function<Integer, Boolean> finished){
 		ArrayDeque<Vector> queue = new ArrayDeque();
 		Vector initPos = new Vector(agent_x_position, agent_y_position);
 		HashMap<Vector, Vector> pathToNode = new HashMap();
@@ -113,9 +116,12 @@ class MyAgentState
 		visited.add(initPos);
 		
 		while (!queue.isEmpty()) {
-			Vector pos = queue.pop();
-			switch (atPos(pos)) {
-			case UNKNOWN:
+			Vector pos = queue.remove();
+			int tileType = atPos(pos);
+			if (tileType == WALL)
+				continue;
+			
+			if (finished.apply(tileType)) {
 				System.out.println("FOUND NEREST UNKOWN AT: " + pos.x + ":" + pos.y);
 			    ArrayList<Vector> path = new ArrayList();
 			    while (pos != initPos) {
@@ -123,8 +129,8 @@ class MyAgentState
 			        pos = pathToNode.get(pos);
                 }
 				return path;
-			case CLEAR:
-			case HOME:
+			}
+			else {
 			    Vector[] newPositions = new Vector[] {
                     new Vector(pos.x - 1, pos.y),
                     new Vector(pos.x + 1, pos.y),
@@ -134,14 +140,13 @@ class MyAgentState
 
 			    for (Vector newPos : newPositions) {
 			    	if (!visited.contains(newPos)) { 
-				        queue.push(newPos);
+				        queue.add(newPos);
 				        if (!pathToNode.containsKey(newPos)) {
 				            pathToNode.put(newPos, pos);
 	                    }
 						visited.add(newPos);
 			    	}
                 }
-				break;
 			}
 		}
 		
@@ -178,6 +183,27 @@ class MyAgentState
 	public boolean isInfront(Vector pos){
 		Vector ahead = infront();	
 		return pos.x == ahead.x && pos.y == ahead.y;
+	}
+	
+	public boolean isLeft(Vector pos) {
+		int leftx = agent_x_position;
+		int lefty = agent_y_position;
+		
+		switch (agent_direction) {
+		case MyAgentState.NORTH:
+			leftx--;
+			break;
+		case MyAgentState.EAST:
+			lefty--;
+			break;
+		case MyAgentState.SOUTH:
+			leftx++;
+			break;
+		case MyAgentState.WEST:
+			lefty++;
+			break;
+		}
+		return leftx == pos.x && lefty == pos.y;
 	}
 	
 	public void updateWorld(int x_position, int y_position, int info)
@@ -246,14 +272,29 @@ class MyAgentProgram implements AgentProgram {
     		state.agent_last_action=state.ACTION_MOVE_FORWARD;
     		state.pathToFollow.remove(last);
     		return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
+		} else if (state.isLeft(pos)) {
+			return turnLeft();
 		} else {
-			state.agent_direction = state.agent_direction - 1;
-			if (state.agent_direction < 0) {
-				state.agent_direction = 3;
-			}
-    		state.agent_last_action=state.ACTION_TURN_LEFT;
-    		return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+			return turnRight();
 		}
+	}
+
+	private Action turnLeft() {
+		state.agent_direction = state.agent_direction - 1;
+		if (state.agent_direction < 0) {
+			state.agent_direction = 3;
+		}
+		state.agent_last_action=state.ACTION_TURN_LEFT;
+		return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+	}
+
+	private Action turnRight() {
+		state.agent_direction = state.agent_direction + 1;
+		if (state.agent_direction > 3) {
+			state.agent_direction = 0;
+		}
+		state.agent_last_action=state.ACTION_TURN_RIGHT;
+		return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 	}
 	
 	@Override
@@ -324,18 +365,14 @@ class MyAgentProgram implements AgentProgram {
 		    	System.out.println("ON A PATH -> following path!");
 	    		return followPath();
 	    	}
-	    	else if (state.unexploredInfront())
-	    	{
-		    	System.out.println("NO PATH -> unexplored infront!");
-	    		state.agent_last_action=state.ACTION_MOVE_FORWARD;
-	    		return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
-	    	}
 	    	else
 	    	{
 		    	System.out.println("NO PATH -> find closest unexplored");
-	    		state.pathToFollow = state.closestUnexplored();
+	    		state.pathToFollow = state.findTile(tile -> tile == state.UNKNOWN);
 	    		if (state.pathToFollow.isEmpty()){
-	    			return NoOpAction.NO_OP;
+	    			if(home)
+	    				return NoOpAction.NO_OP;
+	    			state.pathToFollow = state.findTile(tile -> tile == state.HOME);
 	    		}
 	    		for (Vector v : state.pathToFollow)
 	    			System.out.println(v.x + " : " + v.y);
