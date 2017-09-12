@@ -25,7 +25,7 @@ public class SearchNode{
 		depth =  aNode.getDepth() + 1;
 	}
 
-	public boolean  isRootNode(){
+	public boolean isRootNode(){
 		if (parent == null){
 			  return true;
 		}
