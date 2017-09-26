@@ -9,7 +9,7 @@
    (light-on ?r - room)
    (box-in-room ?b - box ?r - room)
    (holding-in-left ?o - small-object)
-   (holding-in-right ?o small-object))
+   (holding-in-right ?o - small-object))
   (:action go-to-room
            :parameters (?r1 ?r2 - room)
            :precondition (and (shakey-in-room ?r1)
@@ -20,6 +20,7 @@
   (:action turn-on-light
            :parameters (?r - room)
            :precondition (and (not (light-on ?r))
+                              (shakey-in-room ?r)
                               (exists (?b - box) (box-in-room ?b ?r)))
            :effect (light-on ?r))
   (:action push-to-room
@@ -28,5 +29,33 @@
                               (box-in-room ?b ?r1)
                               (wide-door ?r1 ?r2))
            :effect (and (box-in-room ?b ?r2)
-                        (not (box-in-room ?b ?r2))))
+                        (not (box-in-room ?b ?r1))))
+  (:action pick-up-left
+           :parameters (?o - small-object ?r - room)
+           :precondition (and (shakey-in-room ?r)
+                              (object-in-room ?o ?r)
+                              (not (exists (?ox - small-object) (holding-in-left ?ox)))
+                              (light-on ?r))
+           :effect (and (not (object-in-room ?o ?r))
+                        (holding-in-left ?o)))
+  (:action pick-up-right
+           :parameters (?o - small-object ?r - room)
+           :precondition (and (shakey-in-room ?r)
+                              (object-in-room ?o ?r)
+                              (not (exists (?ox - small-object) (holding-in-right ?ox)))
+                              (light-on ?r))
+           :effect (and (not (object-in-room ?o ?r))
+                        (holding-in-right ?o)))
+  (:action drop-left
+           :parameters (?o - small-object ?r - room)
+           :precondition (and (shakey-in-room ?r)
+                              (holding-in-left ?o))
+           :effect (and (object-in-room ?o ?r)
+                        (not (holding-in-left ?o))))
+  (:action drop-right
+           :parameters (?o - small-object ?r - room)
+           :precondition (and (shakey-in-room ?r)
+                              (holding-in-right ?o))
+           :effect (and (object-in-room ?o ?r)
+                        (not (holding-in-right ?o))))
   )
