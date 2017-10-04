@@ -1,44 +1,56 @@
 public class StateAndReward {
 
+	static final int ANGLE_INTERVALS = 3;
 	
 	/* State discretization function for the angle controller */
 	public static String getStateAngle(double angle, double vx, double vy) {
 
-		/* TODO: IMPLEMENT THIS FUNCTION */
-
-		String state = "OneStateToRuleThemAll";
-		
-		return state;
+		if (Math.abs(angle) < 0.05)
+			return "StraightUp";
+		long angleInterval = Math.round(Math.abs(angle) / Math.PI * ANGLE_INTERVALS);
+		String side = angle > 0 ? "right" : "left";
+		return side + angleInterval + ";:";
 	}
 
 	/* Reward function for the angle controller */
 	public static double getRewardAngle(double angle, double vx, double vy) {
 
-		/* TODO: IMPLEMENT THIS FUNCTION */
-		
-		double reward = 0;
 
-		return reward;
+		if (Math.abs(angle) < 0.01)
+			return 100;
+		long angleInterval = Math.round(Math.abs(angle) / Math.PI * ANGLE_INTERVALS);
+		return 80 - angleInterval * (80 / ANGLE_INTERVALS);
 	}
 
 	/* State discretization function for the full hover controller */
 	public static String getStateHover(double angle, double vx, double vy) {
-
-		/* TODO: IMPLEMENT THIS FUNCTION */
-
-		String state = "OneStateToRuleThemAll2";
+		String angle_state = getStateAngle(angle, vx, vy);
+		String x_state;
+		if (Math.abs(vx) < 0.1)
+			x_state = "all good in the neighbourhood;";
+		else x_state = (vx < 0? "left":"right") + discretize(Math.abs(vx), 4, 0, 7) + ";" ;
+		String y_state;
+		if (Math.abs(vy) < 0.1)
+			y_state = "all good in the neighbourhood;";
+		else y_state = (vy < 0? "up":"down") + discretize(Math.abs(vy), 2, 0, 7) + ";" ;
 		
-		return state;
+		return angle_state + x_state + y_state;
 	}
 
 	/* Reward function for the full hover controller */
 	public static double getRewardHover(double angle, double vx, double vy) {
 
-		/* TODO: IMPLEMENT THIS FUNCTION */
+		double angle_state = getRewardAngle(angle, vx, vy);
+		double x_state;
+		if (Math.abs(vx) < 0.1)
+			x_state = 100;
+		else x_state = 80 - 20 * discretize(Math.abs(vx), 4, 0, 7);
+		double y_state;
+		if (Math.abs(vy) < 0.1)
+			y_state = 100;
+		else y_state = 80 - 20 * discretize(Math.abs(vy), 2, 0, 7);
 		
-		double reward = 0;
-
-		return reward;
+		return angle_state + x_state + y_state;
 	}
 
 	// ///////////////////////////////////////////////////////////

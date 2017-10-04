@@ -82,14 +82,38 @@ public class QLearningController extends Controller {
 		middleEngine.setBursting(false);
 	}
 
+	final int ACTION_UP_ON = 1;
+	final int ACTION_UP_OFF = 2;
+	final int ACTION_LEFT_ON = 3;
+	final int ACTION_LEFT_OFF = 4;
+	final int ACTION_RIGHT_ON = 5;
+	final int ACTION_RIGHT_OFF = 6;
+	//final int ACTION_UP_ON = 7;
 	/* Performs the chosen action */
 	void performAction(int action) {
-
-		/* Fire zeh rockets! */
-		/* TODO: Remember to change NUM_ACTIONS constant to reflect the number of actions (including 0, no action) */
-		
-		/* TODO: IMPLEMENT THIS FUNCTION */
-		
+		switch (action) {
+		case ACTION_UP_ON:
+			middleEngine.setBursting(true);
+			break;
+		case ACTION_UP_OFF:
+			middleEngine.setBursting(false);
+			break;
+		case ACTION_LEFT_ON:
+			leftEngine.setBursting(true);
+			break;
+		case ACTION_LEFT_OFF:
+			leftEngine.setBursting(false);
+			break;			
+		case ACTION_RIGHT_ON:
+			rightEngine.setBursting(true);
+			break;
+		case ACTION_RIGHT_OFF:
+			rightEngine.setBursting(false);
+			break;
+		default:
+			resetRockets();
+			break;
+		}	
 	}
 
 	/* Main decision loop. Called every iteration by the simulator */
@@ -97,14 +121,14 @@ public class QLearningController extends Controller {
 		iteration++;
 		
 		if (!paused) {
-			String new_state = StateAndReward.getStateAngle(angle.getValue(), vx.getValue(), vy.getValue());
+			String new_state = StateAndReward.getStateHover(angle.getValue(), vx.getValue(), vy.getValue());
 
 			/* Repeat the chosen action for a while, hoping to reach a new state. This is a trick to speed up learning on this problem. */
 			action_counter++;
 			if (new_state.equals(previous_state) && action_counter < REPEAT_ACTION_MAX) {
 				return;
 			}
-			double previous_reward = StateAndReward.getRewardAngle(previous_angle, previous_vx, previous_vy);
+			double previous_reward = StateAndReward.getRewardHover(previous_angle, previous_vx, previous_vy);
 			action_counter = 0;
 
 			/* The agent is in a new state, do learning and action selection */
@@ -122,8 +146,11 @@ public class QLearningController extends Controller {
 				if (Qtable.get(prev_stateaction) == null) {
 					Qtable.put(prev_stateaction, 0.0);
 				} 
-
 				
+				double prev_value = Qtable.get(prev_stateaction);
+				
+				Qtable.put(prev_stateaction, 
+						prev_value + alpha(Ntable.get(prev_stateaction)) * (previous_reward + GAMMA_DISCOUNT_FACTOR * getMaxActionQValue(new_state) - prev_value));
 				/* TODO: IMPLEMENT Q-UPDATE HERE! */
 				
 				/* See top for constants and below for helper functions */

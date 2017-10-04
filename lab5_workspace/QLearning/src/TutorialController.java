@@ -40,7 +40,8 @@ public class TutorialController extends Controller {
     public void tick(int currentTime) {
 
     	/* TODO: Insert your code here */
-    	
+    	System.out.println("angle: " + angle.getValue() + " vx: " + vx.getValue() + " vy: " + vy.getValue());
+    	middleRocket.setBursting( vy.getValue() > 0);
     }
 
 }
