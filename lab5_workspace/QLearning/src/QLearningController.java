@@ -147,11 +147,13 @@ public class QLearningController extends Controller {
 					Qtable.put(prev_stateaction, 0.0);
 				} 
 				
+				
 				double prev_value = Qtable.get(prev_stateaction);
+				double reward = StateAndReward.getRewardHover(angle.getValue(), vx.getValue(), vy.getValue());
 				
 				Qtable.put(prev_stateaction, 
-						prev_value + alpha(Ntable.get(prev_stateaction)) * (previous_reward + GAMMA_DISCOUNT_FACTOR * getMaxActionQValue(new_state) - prev_value));
-				/* TODO: IMPLEMENT Q-UPDATE HERE! */
+						prev_value + alpha(Ntable.get(prev_stateaction))
+						* (reward + GAMMA_DISCOUNT_FACTOR * getMaxActionQValue(new_state) - prev_value));
 				
 				/* See top for constants and below for helper functions */
 				

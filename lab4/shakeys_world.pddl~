@@ -1,5 +1,5 @@
 (define (domain shakeys-world)
-  (:requirements :strips :equality :typing :adl)
+  (:requirements [:typing] [:adl])
   (:types box room small-object)
   (:predicates
    (shakey-in-room ?r - room)
